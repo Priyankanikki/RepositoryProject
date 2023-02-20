@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="1bad97bc-ea64-4692-8ff4-5a112d52b88c" >
+		<http:listener-connection host="0.0.0.0" port="8085" />
+	</http:listener-config>
+	<http:listener-config name="HTTP_Listener_config1" doc:name="HTTP Listener config" doc:id="f741230a-7b6d-43bc-84d8-649e133ab895" >
+		<http:listener-connection host="0.0.0.0" port="8086" />
+	</http:listener-config>
+	<flow name="choiceexample2Flow1" doc:id="aa96f28b-93e0-4946-bd45-87503b5acdf7" >
+		<http:listener doc:name="Listener" doc:id="113711a8-0c90-45a3-8170-7d8b394acedf" config-ref="HTTP_Listener_config1" path="/foreach"/>
+		<set-payload value="#[[1,2,3,4,5]]" doc:name="Set Payload" doc:id="e77a7f0e-fc60-4a19-a7c4-fbf52f449c67" />
+		<set-variable value="#[[]]" doc:name="mypayload" doc:id="bcf06ada-4a3a-48f3-bcfd-743a30a8d9fa" variableName="myPayload"/>
+		<foreach doc:name="For Each" doc:id="5269b27b-1563-4925-af35-a84eade52c7b" >
+			<set-payload value="#[payload * 10]" doc:name="Set Payload" doc:id="a7c164f2-e852-42af-a9c6-3c7f1e90a1cc" />
+			<logger level="INFO" doc:name="Logger" doc:id="4eca6935-ab37-422e-83e5-3c266359b2a0" message="#[payload]" />
+			<set-variable value="#[vars.myPayload + payload]" doc:name="Set Variable" doc:id="723aaa09-a602-4853-9bd5-81c2e33916c9" variableName="myPayload" />
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="b11f5fb6-5642-45d1-b7a3-3c4d8b2abb6f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.mypayload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="choiceexample2Flow" doc:id="25d5ed0f-2dbe-4f7e-88f0-47f05b05228d" >
+		<http:listener doc:name="Listener" doc:id="71369a06-dc4a-48a4-9034-f6b353a253dc" path="/choice2" config-ref="HTTP_Listener_config"/>
+		<set-payload value='#["hyderabad"]' doc:name="Set Payload" doc:id="68e3db45-6a06-4271-8cfb-af0511c3e9ec" />
+		<choice doc:name="Choice" doc:id="57cfab05-024f-4d43-963c-692cd9b48a0f" >
+			<when expression='#[payload == "hyderabad"]'>
+				<ee:transform doc:name="Transform Message" doc:id="f89fa20c-cf77-4db0-8878-b3eac9948e39" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"city" : "hyderabad"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression='#[payload == "london"]'>
+				<ee:transform doc:name="Transform Message" doc:id="abd5b9fa-4bf8-4aa3-9198-bbc466a5cd35" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"city" : "london"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="7114020f-3d44-4839-8408-28a68e5f5687" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"city" : "vijaywada"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="a145fc9b-4b7f-4cd7-ba50-ee3315065c0a" message='"success"'/>
+	</flow>
+</mule>
